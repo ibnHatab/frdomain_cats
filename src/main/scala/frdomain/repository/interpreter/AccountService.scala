@@ -1,11 +1,12 @@
 package frdomain
-package algebra.interpreter
+package repository.interpreter
 
 import java.util.Date
 
 import scala.util.{Failure, Success, Try}
 
-import common._
+import frdomain.common._
+import algebra.{Account, Balance}
 
 object AccountService extends algebra.AccountService[Account, Amount, Balance] {
   def open(no: String, name: String, openingDate: Option[Date]): Try[Account] = {

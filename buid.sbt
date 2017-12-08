@@ -1,3 +1,6 @@
+val monocleVersion = "1.4.0"
+val akkaVersion = "2.5.7"
+
 lazy val commonSettings = Seq(
   version := "0.0.1",
   resolvers ++= Seq(
@@ -8,7 +11,6 @@ lazy val commonSettings = Seq(
   ),
   scalaVersion := "2.12.4",
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
-  addCompilerPlugin("org.spire-math" %% "kind-projector"  % "0.8.0"),
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4"),
 
@@ -18,16 +20,23 @@ lazy val commonSettings = Seq(
     "joda-time"                     % "joda-time"                     % "2.9.1",
     "org.joda"                      % "joda-convert"                  % "1.8.1",
     "io.spray"                     %% "spray-json"                    % "1.3.2",
-    "com.typesafe.akka"            %% "akka-actor"                    % "2.5.7",
-    "com.typesafe.akka"            %% "akka-persistence"              % "2.5.7",
-    "com.typesafe.akka"            %% "akka-stream"                   % "2.5.7",
+    "com.typesafe.akka"            %% "akka-actor"                    % akkaVersion,
+    "com.typesafe.akka"            %% "akka-persistence"              % akkaVersion,
+    "com.typesafe.akka"            %% "akka-stream"                   % akkaVersion,
     "com.typesafe.scala-logging"   %% "scala-logging"                 % "3.7.2",
     "com.typesafe.slick"           %% "slick"                         % "3.2.1",
     "com.h2database"                % "h2"                            % "1.4.196",
 //    "com.zaxxer"                    % "HikariCP-java6"                % "2.7.4",
     "ch.qos.logback"                % "logback-classic"               % "1.2.3",
-    "org.scalacheck"               %% "scalacheck"                    % "1.13.5"       % "test"
+    "org.scalacheck"               %% "scalacheck"                    % "1.13.5"       % "test",
+    "com.github.julien-truffaut"   %%  "monocle-core"  % monocleVersion,
+    "com.github.julien-truffaut"   %%  "monocle-macro" % monocleVersion,
+    "com.github.julien-truffaut"   %%  "monocle-law"   % monocleVersion % "test"
     )
+)
+
+
+libraryDependencies ++= Seq(
 )
 
 ensimeIgnoreScalaMismatch in ThisBuild := true

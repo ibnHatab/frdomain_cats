@@ -2,45 +2,22 @@ package frdomain
 package algebra.interpreter
 
 import java.util.Date
-import org.scalacheck._
-import Prop.{ forAll, BooleanOperators }
-import Gen._
-import Arbitrary.arbitrary
+
 import scala.util.Success
 
-object AllGen {
+import org.scalacheck._
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Prop.forAll
 
-  import common._
+object AccountSpecification extends Properties("Account") {
 
-  val genAmount = for {
-    value <- Gen.chooseNum(100, 10000000)
-    valueDecimal = BigDecimal.valueOf(value.toLong)
-  } yield valueDecimal / 100
+  import algebra.{Account, Balance}
+  import repository.interpreter.AccountService._
+  import frdomain.AllGen._
 
   val genBalance = genAmount map Balance
 
   implicit val arbitraryBalance: Arbitrary[Balance] = Arbitrary { genBalance }
-
-  val genValidAccountNo = Gen.choose(100000, 999999).map(_.toString)
-  val genInvalidAccountNo = Gen.choose(1000, 9999).map(_.toString)
-
-  val genName = Gen.oneOf("john", "david", "mary")
-
-  def genOptionalValidCloseDate(seed: Date) =
-    Gen.frequency(
-      (8, Some(aDateAfter(seed))),
-      (1, None)
-    )
-  def aDateAfter(date: Date) = new Date(date.getTime() + 10000)
-  def aDateBefore(date: Date) = new Date(date.getTime() - 10000)
-  def genInvalidOptionalCloseDate(seed: Date) = Gen.oneOf(Some(aDateBefore(seed)), None)
-}
-
-object AccountSpecification extends Properties("Account") {
-
-  import Account._
-  import AccountService._
-  import AllGen._
 
   val validAccountGen = for {
     no <- genValidAccountNo
