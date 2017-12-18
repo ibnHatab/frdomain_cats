@@ -1,85 +1,42 @@
 package frdomain
 package smartconstructor
 
-import java.util.{ Date, Calendar }
+import java.util.{ Date }
 import util.{ Try, Success, Failure }
 
-import common._
+import frdomain.common._
+import frdomain.algebra._
 
-case class Balance(amount: Amount = 0)
 
-sealed trait Account {
-  def no: String
-  def name: String
-  def dateOfOpen: Option[Date]
-  def dateOfClose: Option[Date]
-  def balance: Balance
-}
-
-/**
- * In order to ensure that the user cannot use `apply` and `copy` as well, we need
- * to delegate both of them to the smart constructor. Still there can be some hairy issues
- * as in http://stackoverflow.com/questions/19462598/scala-case-class-implementation-of-smart-constructors
- **/
 final case class CheckingAccount private (no: String, name: String,
-  dateOfOpen: Option[Date], dateOfClose: Option[Date] = None, balance: Balance = Balance()) extends Account {
-
-  def copy(no: String = no,
-    name: String = name,
-    dateOfOpen: Option[Date] = dateOfOpen,
-    dateOfClose: Option[Date] = dateOfClose,
-    balance: Balance = balance) = Account.checkingAccount(no, name, dateOfOpen, dateOfClose, balance)
-
-  // FIXME: apply overrides nothing
-  // https://codereview.stackexchange.com/questions/60645/reducing-boilerplate-when-validating-parameters-and-using-a-tuple-for-the-parame
-
-   // def apply(no: String = no,
-   //  name: String = name,
-   //  dateOfOpen: Option[Date] = dateOfOpen,
-   //  dateOfClose: Option[Date] = dateOfClose,
-   //  balance: Balance = balance) = Account.checkingAccount(no, name, dateOfOpen, dateOfClose, balance)
-}
+  dateOfOpening: Date, dateOfClosing: Option[Date] = None, balance: Balance = Balance()) extends Account
 
 final case class SavingsAccount private (no: String, name: String, rateOfInterest: Amount,
-  dateOfOpen: Option[Date], dateOfClose: Option[Date] = None, balance: Balance = Balance()) extends Account {
-
-  def copy(no: String = no,
-    name: String = name,
-    rateOfInterest: Amount = rateOfInterest,
-    dateOfOpen: Option[Date] = dateOfOpen,
-    dateOfClose: Option[Date] = dateOfClose,
-    balance: Balance = balance) = Account.savingsAccount(no, name, rateOfInterest, dateOfOpen, dateOfClose, balance)
-
-  // def apply(no: String = no,
-  //   name: String = name,
-  //   rateOfInterest: Amount = rateOfInterest,
-  //   dateOfOpen: Option[Date] = dateOfOpen,
-  //   dateOfClose: Option[Date] = dateOfClose,
-  //   balance: Balance = balance) = Account.savingsAccount(no, name, rateOfInterest, dateOfOpen, dateOfClose, balance)
-}
+  dateOfOpening: Date, dateOfClosing: Option[Date] = None, balance: Balance = Balance()) extends Account
 
 object Account {
-  def checkingAccount(no: String, name: String, openDate: Option[Date], closeDate: Option[Date],
-    balance: Balance): Try[Account] = {
+  def checkingAccount(no: String, name: String, openDate: Date = today, closeDate: Option[Date] = None,
+    balance: Balance = Balance(0)): Try[Account] = {
+
+    if (no.isEmpty || name.isEmpty) Failure(new Exception(s"Account no or name cannot be blank") )
 
     closeDateCheck(openDate, closeDate).map { d =>
-      CheckingAccount(no, name, Some(d._1), d._2, balance)
+      CheckingAccount(no, name, d._1, d._2, balance)
     }
   }
 
-  def savingsAccount(no: String, name: String, rate: BigDecimal, openDate: Option[Date],
-    closeDate: Option[Date], balance: Balance): Try[Account] = {
+  def savingsAccount(no: String, name: String, rate: BigDecimal, openDate: Date, closeDate: Option[Date], balance: Balance): Try[Account] = {
 
     closeDateCheck(openDate, closeDate).map { d =>
       if (rate <= BigDecimal(0))
         throw new Exception(s"Interest rate $rate must be > 0")
       else
-        SavingsAccount(no, name, rate, Some(d._1), d._2, balance)
+        SavingsAccount(no, name, rate, d._1, d._2, balance)
     }
   }
 
-  private def closeDateCheck(openDate: Option[Date], closeDate: Option[Date]): Try[(Date, Option[Date])] = {
-    val od = openDate.getOrElse(today)
+  private def closeDateCheck(openDate: Date, closeDate: Option[Date]): Try[(Date, Option[Date])] = {
+    val od = openDate
 
     closeDate.map { cd =>
       if (cd before od) Failure(new Exception(s"Close date [$cd] cannot be earlier than open date [$od]"))
@@ -88,4 +45,16 @@ object Account {
       Success((od, closeDate))
     }
   }
+
+  def setDateOfClosing[O <: Account](o: O, closeDate: Option[Date]) =
+    o match {
+      case ca: CheckingAccount => ca.copy(dateOfClosing = closeDate)
+      case sa: SavingsAccount => sa.copy(dateOfClosing = closeDate)
+    }
+
+  def setBalance[O <: Account](o: O, balance: Balance) =
+    o match {
+      case ca: CheckingAccount => ca.copy(balance = balance)
+      case sa: SavingsAccount => sa.copy(balance = balance)
+    }
 }

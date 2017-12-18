@@ -12,7 +12,8 @@ import org.scalacheck.Prop.forAll
 
 object  SmartConstructorSpecification extends Properties("SmartConstructor") {
 
-  import Account._
+  import frdomain.algebra._
+  import frdomain.smartconstructor.Account._
   import frdomain.AllGen._
 
   val genBalance = genAmount map Balance
@@ -25,7 +26,7 @@ object  SmartConstructorSpecification extends Properties("SmartConstructor") {
     od <- arbitrary[Date]
     cd <- genOptionalValidCloseDate(od)
     bl <- arbitrary[Balance]
-  } yield checkingAccount(no, nm, Some(od), cd, bl)
+  } yield checkingAccount(no, nm, od, cd, bl)
 
   val validSavingsAccountGen = for {
     no <- genValidAccountNo
@@ -34,7 +35,7 @@ object  SmartConstructorSpecification extends Properties("SmartConstructor") {
     od <- arbitrary[Date]
     cd <- genOptionalValidCloseDate(od)
     bl <- arbitrary[Balance]
-  } yield savingsAccount(no, nm, rt, Some(od), cd, bl)
+  } yield savingsAccount(no, nm, rt, od, cd, bl)
 
   val invalidCheckingAccountGen = for {
     no <- genInvalidAccountNo
@@ -42,7 +43,7 @@ object  SmartConstructorSpecification extends Properties("SmartConstructor") {
     od <- arbitrary[Date]
     cd <- genInvalidOptionalCloseDate(od)
     bl <- arbitrary[Balance]
-  } yield checkingAccount(no, nm, Some(od), cd, bl)
+  } yield checkingAccount(no, nm, od, cd, bl)
 
   val validClosedCheckingAccountGen = for {
     no <- genValidAccountNo
@@ -50,13 +51,13 @@ object  SmartConstructorSpecification extends Properties("SmartConstructor") {
     od <- arbitrary[Date]
     cd <- genOptionalValidCloseDate(od) suchThat (_ isDefined)
     bl <- arbitrary[Balance]
-  } yield checkingAccount(no, nm, Some(od), cd, bl)
+  } yield checkingAccount(no, nm, od, cd, bl)
 
   val validZeroBalanceCheckingAccountGen = for {
     no <- genValidAccountNo
     nm <- genName
     od <- arbitrary[Date]
-  } yield checkingAccount(no, nm, Some(od), None, Balance(0))
+  } yield checkingAccount(no, nm, od, None, Balance(0))
 
   property("Checking Account creation successful") = forAll(validCheckingAccountGen)(_.isSuccess)
 

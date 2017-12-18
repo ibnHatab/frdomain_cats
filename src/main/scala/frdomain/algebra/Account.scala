@@ -7,5 +7,10 @@ import frdomain.common._
 
 case class Balance(amount: Amount = 0)
 
-case class Account(no: String, name: String, dateOfOpening: Date = today, dateOfClosing: Option[Date] = None,
-  balance: Balance = Balance(0))
+trait Account {
+  def no: String
+  def name: String
+  def dateOfOpening: Date
+  def dateOfClosing: Option[Date]
+  def balance: Balance
+}
